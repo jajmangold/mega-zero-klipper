@@ -1,0 +1,5 @@
+*.gcode
+*.bak
+*.bak-*
+__pycache__/
+*.pyc

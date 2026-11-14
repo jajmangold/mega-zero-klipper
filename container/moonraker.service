@@ -1,0 +1,15 @@
+[Unit]
+Description=Moonraker API server
+After=network.target klipper.service
+Wants=klipper.service
+
+[Service]
+Type=simple
+User=josh
+ExecStart=/home/josh/moonraker-env/bin/python /home/josh/moonraker/moonraker/moonraker.py \
+  -d /home/josh/printer_data
+Restart=on-failure
+RestartSec=20
+
+[Install]
+WantedBy=multi-user.target

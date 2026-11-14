@@ -1,0 +1,19 @@
+[Unit]
+Description=Klipper 3D printer host
+After=network.target
+
+[Service]
+Type=simple
+User=josh
+# A stale /tmp/printer symlink blocks startup SILENTLY - no error, no log.
+ExecStartPre=/bin/rm -f /tmp/printer
+ExecStart=/home/josh/klippy-env/bin/python /home/josh/klipper/klippy/klippy.py \
+  /home/josh/printer_data/config/printer.cfg \
+  -I /tmp/printer \
+  -a /home/josh/printer_data/comms/klippy.sock \
+  -l /home/josh/printer_data/logs/klippy.log
+Restart=on-failure
+RestartSec=20
+
+[Install]
+WantedBy=multi-user.target

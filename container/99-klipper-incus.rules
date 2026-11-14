@@ -1,0 +1,4 @@
+# Re-attach printer MCUs to the klipper incus container when they re-enumerate.
+# systemd-run --no-block so udev is not held up by the restart sequence.
+ACTION=="add", SUBSYSTEM=="tty", ENV{ID_VENDOR_ID}=="1d50", ENV{ID_MODEL_ID}=="614e", RUN+="/usr/bin/systemd-run --no-block /usr/local/bin/incus-klipper-usb.sh pico"
+ACTION=="add", SUBSYSTEM=="tty", ENV{ID_VENDOR_ID}=="1a86", ENV{ID_MODEL_ID}=="7523", RUN+="/usr/bin/systemd-run --no-block /usr/local/bin/incus-klipper-usb.sh avr"

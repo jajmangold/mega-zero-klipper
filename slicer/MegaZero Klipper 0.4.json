@@ -1,0 +1,87 @@
+{
+    "deretraction_speed": [
+        "35",
+        "35",
+        "35"
+    ],
+    "from": "User",
+    "host_type": "moonraker",
+    "inherits": "MyKlipper 0.4 nozzle",
+    "name": "MegaZero Klipper 0.4",
+    "nozzle_type": [
+        "brass",
+        "nil",
+        "nil"
+    ],
+    "print_host": "PRINTER.LAN.ADDRESS",
+    "printable_area": [
+        "0x0",
+        "185x0",
+        "185x220",
+        "0x220"
+    ],
+    "printable_height": "240",
+    "printer_extruder_id": [
+        "1",
+        "1",
+        "1"
+    ],
+    "printer_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow",
+        "Direct Drive Extra High Flow"
+    ],
+    "printer_settings_id": "MegaZero Klipper 0.4",
+    "retraction_length": [
+        "0.8",
+        "0.8",
+        "0.8"
+    ],
+    "retraction_speed": [
+        "35",
+        "35",
+        "35"
+    ],
+    "version": "2.4.0.8",
+    "z_hop": [
+        "0.2",
+        "0.2",
+        "0.2"
+    ],
+    "machine_max_acceleration_x": [
+        "500",
+        "500"
+    ],
+    "machine_max_acceleration_y": [
+        "500",
+        "500"
+    ],
+    "machine_max_acceleration_z": [
+        "100",
+        "100"
+    ],
+    "machine_max_acceleration_extruding": [
+        "500",
+        "500"
+    ],
+    "machine_max_acceleration_travel": [
+        "500",
+        "500"
+    ],
+    "machine_max_acceleration_retracting": [
+        "500",
+        "500"
+    ],
+    "machine_max_speed_x": [
+        "200",
+        "200"
+    ],
+    "machine_max_speed_y": [
+        "200",
+        "200"
+    ],
+    "machine_max_speed_z": [
+        "5",
+        "5"
+    ]
+}
