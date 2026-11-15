@@ -99,10 +99,72 @@ Leverage ratio is 438 ÷ 95 ≈ **4.6**, so every 0.1 mm measured at the probe
 becomes ~0.46 mm of screw movement. Approximate screw positions are fine (it
 iterates) but not arbitrary.
 
+### When it oscillates instead of converging
+
+Later runs stopped converging and Klipper aborted with *Retries aborting: Probed
+points range is increasing*:
+
+```
+0.9975 → 0.2275 → 0.3725 → 0.2200 → 0.3700 → 0.3850
+```
+
+One pass removes the gross error, then it flips between two states forever.
+That is overshoot with spring-back, and the cause here was **cables dragging on
+the gantry** — the load changes as X travels between the two probe points, so
+the tilt is real when measured and gone once corrected.
+
+**Rule out the sensor first; it takes a minute.** Both of these came back clean,
+which is what proved the fault was mechanical:
+
+```
+PROBE_ACCURACY SAMPLES=10        # within a run:   0.002 mm, stdev 0.0015
+G28 then probe one point, ×4     # across homings: 0.0025 mm
+```
+
+Then confirm the second motor actually turns its screw, comparing the **tilt**
+(the difference between the two points) before and after — that is independent
+of where homing put zero:
+
+```
+FORCE_MOVE STEPPER=stepper_z1 DISTANCE=2.0 VELOCITY=1
+# expect the tilt to change by 2.0 × 95/438 = 0.434 mm
+```
+
+Measured 0.388 mm at 10 mm/s and 0.474 mm at 1 mm/s — it tracks at both speeds,
+so neither a stall nor a slipping coupler.
+
+> **Restore every `FORCE_MOVE` in the same breath.** One unpaired +2 mm left the
+> gantry racked and silently poisoned the next three measurements, which looked
+> exactly like the Z geometry drifting between homings.
+
+**Settle for what the mesh can absorb.** With `x_offset -55` the probe reaches
+only bed X 0–130, so `z_tilt` extrapolates from two points 95 mm apart out to
+screws 438 mm apart — a **4.6× amplification** of any flex. Chasing 0.05 mm is
+not achievable here:
+
+```
+Z_TILT_ADJUST RETRIES=3 RETRY_TOLERANCE=0.25
+```
+
+That strips the gross error in one pass and leaves ~0.24 mm for the mesh. Take
+the mesh **after** it, and keep `PRINT_START` loading the saved profile without
+re-running `z_tilt` — otherwise the gantry lands in a different state than the
+mesh was measured in.
+
 ## 5. Bed mesh
 
-5×5 over X 15–120, Y 45–195. Residual range **0.30 mm** — a gentle dish, back-left
-corner lowest.
+5×5 over X 15–120, Y 45–195. Residual range **0.467 mm**, which reads as a
+~0.3 mm left-to-right ramp (the `z_tilt` residual above) sitting on a ~0.2 mm
+front-to-back dish:
+
+```
+          X=15   X=41   X=67   X=94   X=120
+Y=45    -0.412 -0.327 -0.299 -0.264 -0.047
+Y=82    -0.234 -0.152 -0.107 -0.057 +0.006
+Y=120   -0.232 -0.134 -0.079 -0.019 +0.031
+Y=157   -0.324 -0.234 -0.179 -0.117 -0.039
+Y=195   -0.437 -0.332 -0.267 -0.189 -0.129
+```
 
 `fade_start 1.0` / `fade_end 10.0` is important: without it the bed-shape
 correction applies at *every* layer, so a tall part is still being Z-shifted by
@@ -124,7 +186,23 @@ large, reduce. Lines sit as **round beads** → increase. Too small is the safe
 direction to be wrong (prints in the air); too large drives the nozzle into the
 plate.
 
-Current: **1.355**
+**A hotend or extruder swap invalidates this value outright.** `z_offset` *is*
+the nozzle-to-probe vertical relationship, so changing the heater block, the
+nozzle or the whole extruder makes the stored number fiction. Re-run
+`PROBE_CALIBRATE` rather than nudging it — after the direct-drive conversion the
+error was **0.232 mm**, and an evening of 0.05 steps never covered it.
+
+**Read the number Klipper computes, not the gcode Z you stopped at.** `ACCEPT`
+evaluates `new = probe_trigger_Z − nozzle_touch_Z`, both measured at the *same*
+XY, which is why it is the trustworthy figure. Stopping at Z −0.650 gave 1.637,
+not 1.405 + 0.650 — the trigger height at that point was 0.987, not the old
+offset.
+
+> **`[idle_timeout]` aborts a manual probe and drops the steppers.**
+> Mid-paper-test `TESTZ` then fails with *Unknown command: "TESTZ"* and
+> `homed_axes` reads empty. Run `SET_IDLE_TIMEOUT TIMEOUT=3600` first.
+
+Current: **1.637**
 
 ## 7. Pressure advance
 

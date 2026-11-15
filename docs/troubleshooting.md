@@ -102,6 +102,59 @@ then `z_offset`.** Never the other way round.
 
 ---
 
+## Z_TILT_ADJUST never converges
+
+`Too many retries`, or `Retries aborting: Probed points range is increasing`.
+
+Check in this order — the first two are cheap and clear the sensor:
+
+1. **`PROBE_ACCURACY SAMPLES=10`** — should be ~0.002 mm here
+2. **`G28` + probe one point, four times** — should be ~0.0025 mm here
+3. **`FORCE_MOVE STEPPER=stepper_z1 DISTANCE=2.0 VELOCITY=1`** and watch the
+   *tilt* change, not absolute Z. Expect 2.0 × 95/438 = 0.434 mm
+4. **Cables dragging on the gantry** — the cause on this machine. The load
+   varies as X moves between the probe points, so the tilt is genuine when
+   measured and absent once corrected. Oscillation between two values is the
+   signature
+5. **Any unpaired `FORCE_MOVE`** left in the machine from earlier testing
+
+A measured range that *plateaus or oscillates* while the probe repeats to
+0.002 mm is mechanical, never the sensor. Given `x_offset -55` limits the probe
+to bed X 0–130, 0.05 mm is not reachable on this machine — use
+`RETRY_TOLERANCE=0.25` and let the mesh carry the rest.
+
+---
+
+## A paper test dies halfway through
+
+`TESTZ` returns `Unknown command: "TESTZ"` and `toolhead.homed_axes` is empty.
+
+`[idle_timeout]` fired while you were getting the paper in, which aborts the
+manual probe **and** drops the steppers, so the position is gone too. Always:
+
+```
+SET_IDLE_TIMEOUT TIMEOUT=3600
+```
+
+Re-home and restart `PROBE_CALIBRATE` from the beginning afterwards.
+
+---
+
+## Reading probe results over the Moonraker API
+
+`probe/last_z_result` did **not** refresh between two consecutive `PROBE`s —
+both points returned byte-identical values, which read as a perfectly level bed
+and sent the diagnosis down the wrong path for several rounds.
+
+Use `PROBE_ACCURACY` and parse `average` out of `klippy.log` instead. Plain
+`PROBE` does not write its `probe at X,Y is z=` line to the log at all; that
+line only appears on the console.
+
+**Sanity-check any two readings that come back exactly equal.** On this bed that
+is physically impossible.
+
+---
+
 ## Config file traps
 
 **Nothing goes below the `#*# <--- SAVE_CONFIG --->` marker.** Appending macros
