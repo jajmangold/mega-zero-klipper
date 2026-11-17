@@ -23,18 +23,51 @@ machine-specific values changed.
 
 **Acceleration — the important one.** Orca's Klipper flavour emits
 `SET_VELOCITY_LIMIT ACCEL=` into the gcode, which **overrides `max_accel` at
-runtime**. The config value is a default, not a ceiling. Stock profiles asked
-for 5000–7000 mm/s² on a machine that does 500 and has no input shaper.
+runtime and is NOT clamped by it**. The config value is a default, not a
+ceiling. Stock profiles asked for 5000–7000 mm/s² — that was the bug. These
+numbers are the opposite case: deliberately raised, after measuring.
 
 ```
-default_acceleration    500
-outer_wall_acceleration 350
-travel_acceleration     500
+default_acceleration        2000
+outer_wall_acceleration     1000
+inner_wall_acceleration     2000
+sparse_infill_acceleration  2500
+travel_acceleration         3000
+initial_layer_acceleration   500
 ```
 
-**Speeds.** PETG through a 0.4 nozzle at 0.2 × 0.42 caps near 95 mm/s on the
-10 mm³/s volumetric limit, and at 500 mm/s² most moves never approach even that.
-Stock asked for 200 mm/s infill.
+**Why 500 was costing so much.** Acceleration, not velocity, is the real limit.
+At 500 mm/s², reaching 70 mm/s takes `70²/(2×500)` = **4.9 mm** of runway plus
+the same to stop — so any move under ~10 mm never reached its nominal speed, and
+the speed settings were largely decorative. Travel was worse: 150 mm/s needed
+22.5 mm, longer than most travels on a 105 mm-wide print area.
+
+**Measured, not guessed** — [`tools/acceltower.py`](../tools/acceltower.py)
+prints a 50 × 50 single-wall square, 25 mm tall, in 5 mm bands at 500 / 1000 /
+1500 / 2000 / 3000 mm/s², at a constant 80 mm/s so only acceleration varies.
+Result: **no visible difference between any of the bands** — no ringing after
+corners, no layer shift, square top and bottom. The ceiling was never found; the
+numbers above are conservative against an untested limit.
+
+Verify the bands actually changed before trusting such a test — a rejected
+`SET_VELOCITY_LIMIT` would print the whole tower at one value:
+
+```
+SET_VELOCITY_LIMIT ACCEL=3000 ACCEL_TO_DECEL=1500
+# then query toolhead.max_accel - it should read 3000
+```
+
+**There is still no input shaper and no accelerometer.** That it rings so little
+at 3000 is a property of this frame, not a general result.
+
+**Speeds.** PETG through a 0.4 nozzle at 0.2 × 0.42 moves 0.084 mm² of
+cross-section, so 100 mm/s = **8.4 mm³/s** — about all a 40 W V6 clone will melt.
+Past ~100 mm/s it would simply under-extrude, so `filament_max_volumetric_speed`
+is set to **9** as a backstop. Infill runs 100 mm/s; stock asked for 200.
+
+**`minimum_cruise_ratio` is 0.5**, which forces half of every move to be at
+cruise speed and therefore blunts short moves. Lowering it to ~0.3 is the next
+available gain, untested here.
 
 **`printable_area` is the USABLE region, not the machine's reach:**
 
@@ -97,8 +130,9 @@ grep -o 'ACCEL=[0-9]*' file.gcode | sort | uniq -c
 grep -m1 'retraction_length' file.gcode
 ```
 
-Accel should read 500 and below. If 5000 or 7000 appear, the process preset
-didn't apply — and there is no point running the print.
+Accel should read **3000 and below**, with 2000/2500 common. If 5000 or 7000
+appear, the process preset didn't apply — that is the stock profile leaking
+through, and there is no point running the print.
 
 ## Connection
 

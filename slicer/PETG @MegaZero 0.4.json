@@ -17,6 +17,14 @@
     "from": "User",
     "inherits": "Generic PETG @System",
     "name": "PETG @MegaZero 0.4",
+    "filament_max_volumetric_speed": [
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9"
+    ],
     "nozzle_temperature": [
         "235",
         "235",
