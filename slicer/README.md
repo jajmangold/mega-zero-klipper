@@ -36,8 +36,31 @@ travel_acceleration     500
 10 mm³/s volumetric limit, and at 500 mm/s² most moves never approach even that.
 Stock asked for 200 mm/s infill.
 
-**Bed size 185 × 220**, not 220 × 220. Orca was centring parts at X=110 on a bed
-it believed was wider than the machine can reach.
+**`printable_area` is the USABLE region, not the machine's reach:**
+
+```
+"printable_area": [ "15x45", "120x45", "120x195", "15x195" ]
+```
+
+It started as `220x220`, was corrected to the real travel `185x220` — and that
+was still wrong, because *reachable* is not *printable*. With `x_offset -55` the
+probe only covers bed X 0–130, so anything outside X 15–120 / Y 45–195 prints on
+bed Klipper has never measured.
+
+Declaring the full rectangle let Orca drop a part at **Y30**, 15 mm outside the
+mesh and ~5 mm from the plate's front edge, on a 50 × 2 mm footprint. That alone
+ruins a first layer no matter what `z_offset` is, and it looks exactly like a Z
+problem. With the usable region declared, Orca centres on **(67.5, 120)** and
+cannot place a part there at all.
+
+The cost is giving up X120–185, which the nozzle *can* reach. That area is
+unmeshed and unmeasurable, so it was never reliably printable anyway.
+
+[`tools/bedmap.py`](../tools/bedmap.py) prints a labelled grid over the usable
+area — boundary, gridlines every 20 mm in X and 30 mm in Y, a corner marker at
+(15,45), and doubled reference lines at X60 and Y120. Photograph the result to
+read any physical feature off in bed coordinates. It settled the COMGROW logo
+question in one print: the logo is **entirely in front of Y45**.
 
 **Retraction 0.8 mm @ 35** — direct drive. Note Orca emits its own `G1 E`
 retractions and **ignores `[firmware_retraction]` entirely**, so the printer's

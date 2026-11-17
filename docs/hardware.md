@@ -125,7 +125,10 @@ Heated bed added to the old aluminium plate, PEI sheet on top.
 fully before removing parts.
 
 **The COMGROW logo is screen-printed onto the PEI and takes no adhesion.**
-Nothing sticks on that patch — the prime line runs at Y80 to stay clear of it.
+Nothing sticks on that patch. A `bedmap.gcode` grid print on 2026-11-16 placed it
+**entirely in front of Y45**, i.e. outside the meshed area altogether — so the old
+"run the prime line at Y80 to clear the logo" rule was ~35 mm over-cautious. The
+prime line now runs an L at X18 Y150 → X18 Y50 → X60 Y50.
 
 ## Purge bucket and wipe pad
 

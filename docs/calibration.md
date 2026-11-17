@@ -202,7 +202,8 @@ offset.
 > Mid-paper-test `TESTZ` then fails with *Unknown command: "TESTZ"* and
 > `homed_axes` reads empty. Run `SET_IDLE_TIMEOUT TIMEOUT=3600` first.
 
-Current: **1.637**
+Current: **1.667** (1.637 from PROBE_CALIBRATE, then −0.03 folded in with
+`Z_OFFSET_APPLY_PROBE` after a live first-layer check).
 
 ## 7. Pressure advance
 

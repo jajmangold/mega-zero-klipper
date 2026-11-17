@@ -13,12 +13,12 @@
         "nil",
         "nil"
     ],
-    "print_host": "PRINTER.LAN.ADDRESS",
+    "print_host": "192.168.68.81",
     "printable_area": [
-        "0x0",
-        "185x0",
-        "185x220",
-        "0x220"
+        "15x45",
+        "120x45",
+        "120x195",
+        "15x195"
     ],
     "printable_height": "240",
     "printer_extruder_id": [
