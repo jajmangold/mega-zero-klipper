@@ -42,6 +42,19 @@ the same to stop — so any move under ~10 mm never reached its nominal speed, a
 the speed settings were largely decorative. Travel was worse: 150 mm/s needed
 22.5 mm, longer than most travels on a 105 mm-wide print area.
 
+> **The process preset is NOT enough — the MACHINE preset caps it.** Orca clamps
+> every process acceleration to `machine_max_acceleration_*` in the machine
+> preset, which were all still at **500**. Raising the process values alone
+> changes nothing; Orca just silently caps them back down. It does say so, in a
+> dismissable warning box: *"The acceleration setting exceeds the printer's
+> maximum acceleration (machine_max_acceleration_extruding). Orca will
+> automatically cap the acceleration speed…"*
+>
+> Set `machine_max_acceleration_x`, `_y`, `_extruding`, `_travel` and
+> `_retracting` to **3000** (each is a 2-entry array — normal and silent mode,
+> both need changing). Leave `machine_max_acceleration_z` at 100: those are lead
+> screws.
+
 **Measured, not guessed** — [`tools/acceltower.py`](../tools/acceltower.py)
 prints a 50 × 50 single-wall square, 25 mm tall, in 5 mm bands at 500 / 1000 /
 1500 / 2000 / 3000 mm/s², at a constant 80 mm/s so only acceleration varies.
